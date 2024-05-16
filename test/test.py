@@ -11,7 +11,8 @@ def client():
 def test_showSummary_valid_email(client):
     response = client.post('/showSummary', data=dict(email='john@simplylift.co'))
     assert response.status_code == 200
-    assert b'Simply Lift' in response.data
+    print("test !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", response.data)
+    assert b'Welcome, john@simplylift.co' in response.data
 
 def test_showSummary_invalid_email(client):
     response = client.post('/showSummary', data=dict(email='invalid@invalid.com'))
