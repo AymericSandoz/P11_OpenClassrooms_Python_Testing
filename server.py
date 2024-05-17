@@ -1,6 +1,6 @@
 import json
 from flask import Flask, render_template, request, redirect, flash, url_for
-
+from datetime import datetime
 
 def loadClubs():
     with open('clubs.json') as c:
@@ -33,9 +33,18 @@ def index(error=None):
 
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
+    current_date = datetime.now()
     club = [club for club in clubs if club['email'] == request.form['email']]
     if not club:
         return index(error='No club found with that email address')
+
+    for competition in competitions:
+        competition_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
+        if competition_date > current_date:
+            competition['canBook'] = True
+        else:
+            competition['canBook'] = False
+
     return render_template('welcome.html', club=club[0], competitions=competitions)
 
 
@@ -43,6 +52,11 @@ def showSummary():
 def book(competition, club):
     foundClub = [c for c in clubs if c['name'] == club][0]
     foundCompetition = [c for c in competitions if c['name'] == competition][0]
+    current_date = datetime.now()
+    competition_date = datetime.strptime(foundCompetition['date'], '%Y-%m-%d %H:%M:%S')
+    if competition_date < current_date:
+        flash('This competition has already taken place')
+        return render_template('welcome.html', club=foundClub, competitions=competitions)
     maxPlaces = min(int(foundClub['points']), (12 - getClubNbReservations(foundClub, foundCompetition)))
     if foundClub and foundCompetition:
         return render_template('booking.html', club=foundClub, competition=foundCompetition, maxPlaces=maxPlaces)

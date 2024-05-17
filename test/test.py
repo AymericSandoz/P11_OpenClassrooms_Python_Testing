@@ -24,8 +24,8 @@ def test_showSummary_invalid_email(client):
 @pytest.fixture
 def competitions():
     return [
-        {'name': 'competition1',"date": "2020-03-27 10:00:00", 'numberOfPlaces': '10'},
-        {'name': 'competition2',"date": "2020-03-27 10:00:00", 'numberOfPlaces': '20'},
+        {'name': 'competition1',"date": "2025-03-27 10:00:00", 'numberOfPlaces': '10'},
+        {'name': 'competition2',"date": "2025-03-27 10:00:00", 'numberOfPlaces': '20'},
     ]
 
 @pytest.fixture
@@ -105,3 +105,25 @@ def test_purchasePlaces_enough_places(mocker, client, competitions, clubs):
     flash_mock.assert_called_once_with('Great-booking complete!')
     assert int(competitions[1]['numberOfPlaces']) == 10
     assert int(clubs[0]['points']) == 5
+
+def test_try_to_book_past_competition(mocker, client, competitions, clubs):
+    mocker.patch('server.competitions', competitions)
+    #modifier date de competition à 2020 pour que la competition soit passée
+    competitions[0]['date'] = "2020-03-27 10:00:00"
+    mocker.patch('server.clubs', clubs)
+    flash_mock = mocker.patch('server.flash')
+
+    response = client.get('/book/competition1/club1')
+
+    assert response.status_code == 200
+    flash_mock.assert_called_once_with('This competition has already taken place')
+
+def test_try_to_book_future_competition(mocker, client, competitions, clubs):
+    mocker.patch('server.competitions', competitions)
+    mocker.patch('server.clubs', clubs)
+    flash_mock = mocker.patch('server.flash')
+
+    response = client.get('/book/competition1/club1')
+
+    assert response.status_code == 200
+    flash_mock.assert_not_called()
