@@ -4,7 +4,6 @@ lib
 Scripts
 .vscode
 .Python
-tests/
 .envrc
 __pycache__
 note.md
