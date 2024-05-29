@@ -94,7 +94,7 @@ def addReservation(club, competition, places):
     for reservation in reservations:
         if reservation['club'] == club['name'] and reservation['competition'] == competition['name']:
             # Si oui, ajouter les places à la réservation existante
-            reservation['places'] += places
+            reservation['places'] = int(reservation['places']) + places
             break
     else:
         # Si non, ajouter la nouvelle réservation à la liste

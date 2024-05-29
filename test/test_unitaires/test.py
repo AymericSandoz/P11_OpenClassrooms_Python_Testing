@@ -32,7 +32,7 @@ def competitions():
 def clubs():
     return [
         {'name': 'club1', 'email':'club1@hotmail.fr', 'points': '15'},
-        {'name': 'club2','email':'club1@hotmail.fr', 'points': '5'},
+        {'name': 'club2','email':'club2@hotmail.fr', 'points': '5'},
     ]
 
 @pytest.fixture
@@ -94,9 +94,10 @@ def test_purchasePlaces_too_many_places_already_booked(mocker, client, competiti
     assert int(competitions[0]['numberOfPlaces']) == 10
     assert int(clubs[1]['points']) == 5
 
-def test_purchasePlaces_enough_places(mocker, client, competitions, clubs):
+def test_purchasePlaces_enough_places(mocker, client, competitions, clubs, reservations):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
+    mocker.patch('server.reservations', reservations)
     flash_mock = mocker.patch('server.flash')
 
     response = client.post('/purchasePlaces', data={'competition': 'competition2', 'club': 'club1', 'places': '10'})
