@@ -1,1 +1,14 @@
-{ "reservations": [] }
+{
+    "reservations": [
+        {
+            "club": "Simply Lift",
+            "competition": "Spring Festival",
+            "places": 12
+        },
+        {
+            "club": "Simply Lift",
+            "competition": "Fall Classic",
+            "places": 1
+        }
+    ]
+}
