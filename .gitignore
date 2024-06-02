@@ -7,3 +7,6 @@ Scripts
 .envrc
 __pycache__
 note.md
+clubs.json
+competitions.json
+reservations.json
