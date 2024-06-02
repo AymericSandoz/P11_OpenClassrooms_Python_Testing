@@ -43,7 +43,10 @@ def index(error=None):
 
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
+    print(session)
     club = [club for club in clubs if club['email'] == request.form['email']]
+    print(request.form['email'])
+    print(club)
     if not club:
         return index(error='No club found with that email address')
     session['email'] = request.form['email']
@@ -72,6 +75,7 @@ def book(competition, club):
 
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
+    print(session)
     if 'email' not in session:
         return redirect(url_for('index'))
     competition = [c for c in competitions if c['name']

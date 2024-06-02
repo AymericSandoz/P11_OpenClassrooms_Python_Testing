@@ -28,10 +28,13 @@ def reservations():
         {'competition': 'competition1', 'club': 'club2', 'places': '5'},
     ]
 
+
+
 def test_integration_booking_process(client, mocker, competitions, clubs, reservations):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     mocker.patch('server.reservations', reservations)
+    mocker.patch('server.saveAllData', return_value=None)
 
     # Club logs in
     response = client.post('/showSummary', data=dict(email='club1@hotmail.fr'))
