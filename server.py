@@ -18,6 +18,16 @@ def loadReservations():
         listOfReservations = json.load(res)['reservations']
         return listOfReservations
 
+def saveDataToJson(data, filename):
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=4)
+
+def saveAllData():
+    """ save clubs, competitions and reservations to JSON files """
+    saveDataToJson({'clubs': clubs}, 'clubs.json')
+    saveDataToJson({'competitions': competitions}, 'competitions.json')
+    saveDataToJson({'reservations': reservations}, 'reservations.json')
+
 
 app = Flask(__name__)
 app.secret_key = 'something_special'
@@ -73,6 +83,8 @@ def purchasePlaces():
         club['points'] = str(int(club['points']) - placesRequired)  # Deduct the points from the club's total
         # Update the reservations
         addReservation(club, competition, placesRequired)
+        # Save the updated data to the JSON file
+        saveAllData()
         flash('Great-booking complete!')
     else:
         flash('Not enough points to complete this booking.')
