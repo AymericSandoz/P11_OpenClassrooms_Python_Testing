@@ -1,5 +1,5 @@
 import pytest
-from flask import Flask, request
+from flask import Flask, request, session
 from server import app
 from unittest.mock import patch
 
@@ -12,6 +12,7 @@ def client():
 def test_showSummary_valid_email(client):
     response = client.post('/showSummary', data=dict(email='john@simplylift.co'))
     assert response.status_code == 200
+    print(response.data)
     assert b'Welcome, john@simplylift.co' in response.data
 
 def test_showSummary_invalid_email(client):
@@ -41,12 +42,24 @@ def reservations():
         {'competition': 'competition1', 'club': 'club2', 'places': '5'},
     ]
 
-def test_purchasePlaces_enough_points(mocker, client, competitions, clubs):
+@pytest.fixture
+def client_1_with_session(client):
+    with client.session_transaction() as session:
+        session['email'] = 'club1@hotmail.fr'
+    return client
+
+@pytest.fixture
+def client_2_with_session(client):
+    with client.session_transaction() as session:
+        session['email'] = 'club2@hotmail.fr'
+    return client
+
+def test_purchasePlaces_enough_points(mocker, client_1_with_session, competitions, clubs):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     flash_mock = mocker.patch('server.flash')
 
-    response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '5'})
+    response = client_1_with_session.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '5'})
 
     assert response.status_code == 200
     flash_mock.assert_called_once_with('Great-booking complete!')
@@ -54,12 +67,11 @@ def test_purchasePlaces_enough_points(mocker, client, competitions, clubs):
     assert int(competitions[0]['numberOfPlaces']) == 5
     assert int(clubs[0]['points']) == 10
 
-def test_purchasePlaces_not_enough_points(mocker, client, competitions, clubs):
+def test_purchasePlaces_not_enough_points(mocker, client_2_with_session, competitions, clubs):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     flash_mock = mocker.patch('server.flash')
-
-    response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
+    response = client_2_with_session.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
 
     assert response.status_code == 200
     flash_mock.assert_called_once_with('Not enough points to complete this booking.')
