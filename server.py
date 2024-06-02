@@ -39,7 +39,7 @@ reservations = loadReservations()
 
 @app.route('/')
 def index(error=None):
-    return render_template('index.html', error=error)
+    return render_template('index.html', error=error, clubs=clubs)
 
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
@@ -50,7 +50,7 @@ def showSummary():
     if not club:
         return index(error='No club found with that email address')
     session['email'] = request.form['email']
-    return render_template('welcome.html', club=club[0], competitions=competitions, clubs=clubs)
+    return render_template('welcome.html', club=club[0], competitions=competitions)
 
 
 @app.route('/book/<competition>/<club>')
