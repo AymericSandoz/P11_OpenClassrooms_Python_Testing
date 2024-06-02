@@ -46,6 +46,7 @@ def test_purchasePlaces_enough_points(mocker, client, competitions, clubs):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     flash_mock = mocker.patch('server.flash')
+    mocker.patch('server.saveAllData', return_value=None)
 
     response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '5'})
 
@@ -59,6 +60,7 @@ def test_purchasePlaces_not_enough_points(mocker, client, competitions, clubs):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     flash_mock = mocker.patch('server.flash')
+    mocker.patch('server.saveAllData', return_value=None)
 
     response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
 
@@ -73,6 +75,7 @@ def test_purchasePlaces_too_many_places(mocker, client, competitions, clubs, res
     mocker.patch('server.clubs', clubs)
     mocker.patch('server.reservations', [])
     flash_mock = mocker.patch('server.flash')
+    mocker.patch('server.saveAllData', return_value=None)
 
     response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '20'})
 
@@ -86,6 +89,7 @@ def test_purchasePlaces_too_many_places_already_booked(mocker, client, competiti
     mocker.patch('server.clubs', clubs)
     mocker.patch('server.reservations', reservations)
     flash_mock = mocker.patch('server.flash')
+    mocker.patch('server.saveAllData', return_value=None)
 
     response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
 
@@ -99,6 +103,7 @@ def test_purchasePlaces_enough_places(mocker, client, competitions, clubs, reser
     mocker.patch('server.clubs', clubs)
     mocker.patch('server.reservations', reservations)
     flash_mock = mocker.patch('server.flash')
+    mocker.patch('server.saveAllData', return_value=None)
 
     response = client.post('/purchasePlaces', data={'competition': 'competition2', 'club': 'club1', 'places': '10'})
 
