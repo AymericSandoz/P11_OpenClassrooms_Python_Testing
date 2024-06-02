@@ -1,5 +1,5 @@
 import json
-from flask import Flask, render_template, request, redirect, flash, url_for
+from flask import Flask, render_template, request, redirect, flash, url_for, session
 
 
 def loadClubs():
@@ -43,15 +43,27 @@ def index(error=None):
 
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
+    print(session)
     club = [club for club in clubs if club['email'] == request.form['email']]
+    print(request.form['email'])
+    print(club)
     if not club:
         return index(error='No club found with that email address')
+    session['email'] = request.form['email']
     return render_template('welcome.html', club=club[0], competitions=competitions, clubs=clubs)
 
 
 @app.route('/book/<competition>/<club>')
 def book(competition, club):
+    if 'email' not in session:
+        return redirect(url_for('index'))
     foundClub = [c for c in clubs if c['name'] == club][0]
+
+    #check de sécurité pour éviter de réserver pour un autre club
+    if session['email'] != foundClub['email']:
+        flash("You can't make a reservation for another club")
+        return render_template('welcome.html', club=foundClub, competitions=competitions)
+
     foundCompetition = [c for c in competitions if c['name'] == competition][0]
     maxPlaces = min(int(foundClub['points']), (12 - getClubNbReservations(foundClub, foundCompetition)))
     if foundClub and foundCompetition:
@@ -63,6 +75,9 @@ def book(competition, club):
 
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
+    print(session)
+    if 'email' not in session:
+        return redirect(url_for('index'))
     competition = [c for c in competitions if c['name']
                    == request.form['competition']][0]
     club = [c for c in clubs if c['name'] == request.form['club']][0]
@@ -96,6 +111,7 @@ def purchasePlaces():
 
 @app.route('/logout')
 def logout():
+    session.clear()
     return redirect(url_for('index'))
 
 def addReservation(club, competition, places):

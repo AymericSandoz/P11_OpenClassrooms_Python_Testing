@@ -1,5 +1,5 @@
 import pytest
-from flask import Flask, request
+from flask import Flask, request, session
 from server import app
 from unittest.mock import patch
 
@@ -9,11 +9,12 @@ def client():
     with app.test_client() as client:
         yield client
 
-def test_showSummary_valid_email(client):
-    response = client.post('/showSummary', data=dict(email='john@simplylift.co'))
+def test_showSummary_valid_email(client, mocker, clubs):
+    mocker.patch('server.clubs', clubs)
+    response = client.post('/showSummary', data=dict(email='club1@hotmail.fr'))
     assert response.status_code == 200
-    print("test !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", response.data)
-    assert b'Welcome, john@simplylift.co' in response.data
+    print(response.data)
+    assert b'club1@hotmail.fr' in response.data
 
 def test_showSummary_invalid_email(client):
     response = client.post('/showSummary', data=dict(email='invalid@invalid.com'))
@@ -42,13 +43,25 @@ def reservations():
         {'competition': 'competition1', 'club': 'club2', 'places': '5'},
     ]
 
-def test_purchasePlaces_enough_points(mocker, client, competitions, clubs):
+@pytest.fixture
+def client_1_with_session(client):
+    with client.session_transaction() as session:
+        session['email'] = 'club1@hotmail.fr'
+    return client
+
+@pytest.fixture
+def client_2_with_session(client):
+    with client.session_transaction() as session:
+        session['email'] = 'club2@hotmail.fr'
+    return client
+
+def test_purchasePlaces_enough_points(mocker, client_1_with_session, competitions, clubs):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     flash_mock = mocker.patch('server.flash')
     mocker.patch('server.saveAllData', return_value=None)
 
-    response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '5'})
+    response = client_1_with_session.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '5'})
 
     assert response.status_code == 200
     flash_mock.assert_called_once_with('Great-booking complete!')
@@ -56,13 +69,12 @@ def test_purchasePlaces_enough_points(mocker, client, competitions, clubs):
     assert int(competitions[0]['numberOfPlaces']) == 5
     assert int(clubs[0]['points']) == 10
 
-def test_purchasePlaces_not_enough_points(mocker, client, competitions, clubs):
+def test_purchasePlaces_not_enough_points(mocker, client_2_with_session, competitions, clubs):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     flash_mock = mocker.patch('server.flash')
     mocker.patch('server.saveAllData', return_value=None)
-
-    response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
+    response = client_2_with_session.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
 
     assert response.status_code == 200
     flash_mock.assert_called_once_with('Not enough points to complete this booking.')
@@ -70,42 +82,42 @@ def test_purchasePlaces_not_enough_points(mocker, client, competitions, clubs):
     assert int(competitions[0]['numberOfPlaces']) == 10
     assert int(clubs[1]['points']) == 5
 
-def test_purchasePlaces_too_many_places(mocker, client, competitions, clubs, reservations):
+def test_purchasePlaces_too_many_places(mocker, client_1_with_session, competitions, clubs):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     mocker.patch('server.reservations', [])
     flash_mock = mocker.patch('server.flash')
     mocker.patch('server.saveAllData', return_value=None)
 
-    response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '20'})
+    response = client_1_with_session.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club1', 'places': '20'})
 
     assert response.status_code == 200
     flash_mock.assert_called_once_with('You can only book a maximum of 12 places for a competition')
     assert int(competitions[0]['numberOfPlaces']) == 10
     assert int(clubs[0]['points']) == 15
 
-def test_purchasePlaces_too_many_places_already_booked(mocker, client, competitions, clubs, reservations):
+def test_purchasePlaces_too_many_places_already_booked(mocker, client_2_with_session, competitions, clubs, reservations):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     mocker.patch('server.reservations', reservations)
     flash_mock = mocker.patch('server.flash')
     mocker.patch('server.saveAllData', return_value=None)
 
-    response = client.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
+    response = client_2_with_session.post('/purchasePlaces', data={'competition': 'competition1', 'club': 'club2', 'places': '10'})
 
     assert response.status_code == 200
     flash_mock.assert_called_once_with('You can only book a maximum of 12 places for a competition and you have already booked 5 places')
     assert int(competitions[0]['numberOfPlaces']) == 10
     assert int(clubs[1]['points']) == 5
 
-def test_purchasePlaces_enough_places(mocker, client, competitions, clubs, reservations):
+def test_purchasePlaces_enough_places(mocker, client_1_with_session, competitions, clubs, reservations):
     mocker.patch('server.competitions', competitions)
     mocker.patch('server.clubs', clubs)
     mocker.patch('server.reservations', reservations)
     flash_mock = mocker.patch('server.flash')
     mocker.patch('server.saveAllData', return_value=None)
 
-    response = client.post('/purchasePlaces', data={'competition': 'competition2', 'club': 'club1', 'places': '10'})
+    response = client_1_with_session.post('/purchasePlaces', data={'competition': 'competition2', 'club': 'club1', 'places': '10'})
 
     assert response.status_code == 200
     flash_mock.assert_called_once_with('Great-booking complete!')
