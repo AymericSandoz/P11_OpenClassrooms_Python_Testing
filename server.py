@@ -1,5 +1,5 @@
 import json
-from flask import Flask, render_template, request, redirect, flash, url_for, session
+from flask import Flask, render_template, request, redirect, flash, url_for, session, abort
 from datetime import datetime
 
 
@@ -85,6 +85,7 @@ def book(competition, club):
         foundCompetition['date'], '%Y-%m-%d %H:%M:%S')
     if competition_date < current_date:
         flash('This competition has already taken place')
+        abort(403)
         return render_template('welcome.html', club=foundClub, competitions=competitions)
     maxPlaces = min(int(
         foundClub['points']), (12 - getClubNbReservations(foundClub, foundCompetition)))
