@@ -12,13 +12,23 @@
     <form action="showSummary" method="post">
         <label for="email">Email:</label>
         <input type="email" name="email" id="" />
-        <button type="submit">Enter</button>
+        <button type="submit" id="submit-button">Enter</button>
         {% if error %}
         <div class="alert alert-danger">
             {{ error }}
         </div>
         {% endif %}
     </form>
+    <h3>Clubs:</h3>
+    <ul>
+        {% for club in clubs%}
+        <li>
+            {{club['name']}}<br />
+            Points: {{club['points']}}
+        </li>
+        <hr />
+        {% endfor %}
+    </ul>
 </body>
 
 </html>

@@ -4,7 +4,15 @@ lib
 Scripts
 .vscode
 .Python
-tests/
 .envrc
 __pycache__
 note.md
+env/
+requirements.txt
+.coveragerc
+.coverage
+clubs.json
+competitions.json
+reservations.json
+test.json
+.gitignore
