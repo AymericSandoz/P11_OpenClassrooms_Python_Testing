@@ -22,9 +22,9 @@
 
 3. Installation
 
-   - After cloning, change into the directory and type <code>virtualenv .</code>. This will then set up a a virtual python environment within that directory.
+   - After cloning, change into the directory and type `python -m venv env`. This will then set up a a virtual python environment within that directory.
 
-   - Next, type <code>source bin/activate</code>. You should see that your command prompt has changed to the name of the folder. This means that you can install packages in here without affecting affecting files outside. To deactivate, type <code>deactivate</code>
+   - Next, type <code>source env/bin/activate</code>. You should see that your command prompt has changed to the name of the folder. This means that you can install packages in here without affecting affecting files outside. To deactivate, type <code>deactivate</code>
 
    - Rather than hunting around for the packages you need, you can install in one step. Type <code>pip install -r requirements.txt</code>. This will install all the packages listed in the respective file. If you install a package, make sure others know by updating the requirements.txt file. An easy way to do this is <code>pip freeze > requirements.txt</code>
 
@@ -45,3 +45,119 @@
 
    We also like to show how well we're testing, so there's a module called
    [coverage](https://coverage.readthedocs.io/en/coverage-5.1/) you should add to your project.
+
+# Install the project on windows
+
+```sh
+- git clone https://github.com/AymericSandoz/P11_OpenClassrooms_Python_Testing.git
+```
+
+```sh
+- python -m venv env
+```
+
+```sh
+- .\env\Scripts\activate
+```
+
+```sh
+- pip install -r requirements.txt
+```
+
+# Launching the Application
+
+Set the Flask app environment variable:
+
+```sh
+$env:FLASK_APP = "server.py"
+```
+
+Activate virtual env
+
+```sh
+- .\env\Scripts\activate
+```
+
+Run the application
+
+```sh
+flask run
+```
+
+# Running Test
+
+## Run integration, unit, and fonctional tests all in one
+
+```sh
+pytest test/
+```
+
+## Run integration tests
+
+```sh
+pytest .\test\test_integrations\
+```
+
+## Run unit tests
+
+```sh
+pytest .\test\test_unitaires\
+```
+
+## Run functionnal tests
+
+Run the application
+
+```sh
+pytest .\test\test_functionnels\
+```
+
+## Run performance test
+
+```sh
+locust -f .\test\test_performance\locustfile.py
+```
+
+Open the browser at http://localhost:8089.
+
+Performance Test Notes:
+No failures, but response times are very long (3-4s). Why?
+
+## Coverage Testing
+
+```sh
+pytest --cov=. test/
+```
+
+For detailed coverage, generate an HTML report:
+
+```sh
+pytest --cov=. --cov-report html test/
+```
+
+Open the index.html file in the htmlcov directory.
+
+# Git
+
+La convention de nommage des branches suit la terminologie suivante :
+`<Numéro>/<Type>/<NomDeLaBranche>`
+
+- `<Numéro>` : Un identifiant unique pour le ticket associé.
+- `<Type>` : Indique le type de travail effectué. Utilisez `Bug` pour les corrections de bugs et `Feature` pour les nouvelles fonctionnalités.
+- `<NomDeLaBranche>` : Un nom descriptif, court et précis, séparé par des tirets si nécessaire.
+
+Exemple :
+`123/Feature/amelioration-du-login`
+
+La branche master est la branche principale du projet
+
+La branche QA correspond à la branche de test
+
+Les autres branches sont nommées selon la nomenclagie suivante:
+
+- `<Numéro>` : Un identifiant unique pour la tâche ou le ticket associé.
+- `<Type>` : Indique le type de travail effectué. Utilisez `Bug` pour les corrections de bugs et `Feature` pour les nouvelles fonctionnalités.
+- `<NomDeLaBranche>` : Un nom descriptif, court et précis, séparé par des tirets si nécessaire.
+
+Exemple :
+`05/Feature/AjoutLoginSocial`

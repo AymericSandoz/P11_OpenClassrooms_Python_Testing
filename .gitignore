@@ -8,7 +8,6 @@ Scripts
 __pycache__
 note.md
 env/
-requirements.txt
 .coveragerc
 .coverage
 clubs.json
