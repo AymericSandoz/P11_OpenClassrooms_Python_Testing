@@ -1,5 +1,6 @@
 import json
-from flask import Flask, render_template, request, redirect, flash, url_for, session
+from flask import Flask, render_template, request, redirect, flash, url_for, session, abort
+from datetime import datetime
 
 
 def loadClubs():
@@ -13,14 +14,17 @@ def loadCompetitions():
         listOfCompetitions = json.load(comps)['competitions']
         return listOfCompetitions
 
+
 def loadReservations():
     with open('reservations.json') as res:
         listOfReservations = json.load(res)['reservations']
         return listOfReservations
 
+
 def saveDataToJson(data, filename):
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
+
 
 def saveAllData():
     """ save clubs, competitions and reservations to JSON files """
@@ -41,14 +45,25 @@ reservations = loadReservations()
 def index(error=None):
     return render_template('index.html', error=error, clubs=clubs)
 
+
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
+    current_date = datetime.now()
     print(session)
     club = [club for club in clubs if club['email'] == request.form['email']]
     print(request.form['email'])
     print(club)
     if not club:
         return index(error='No club found with that email address')
+
+    for competition in competitions:
+        competition_date = datetime.strptime(
+            competition['date'], '%Y-%m-%d %H:%M:%S')
+        if competition_date > current_date:
+            competition['canBook'] = True
+        else:
+            competition['canBook'] = False
+
     session['email'] = request.form['email']
     return render_template('welcome.html', club=club[0], competitions=competitions)
 
@@ -59,13 +74,21 @@ def book(competition, club):
         return redirect(url_for('index'))
     foundClub = [c for c in clubs if c['name'] == club][0]
 
-    #check de sécurité pour éviter de réserver pour un autre club
+    # check de sécurité pour éviter de réserver pour un autre club
     if session['email'] != foundClub['email']:
         flash("You can't make a reservation for another club")
         return render_template('welcome.html', club=foundClub, competitions=competitions)
 
     foundCompetition = [c for c in competitions if c['name'] == competition][0]
-    maxPlaces = min(int(foundClub['points']), (12 - getClubNbReservations(foundClub, foundCompetition)))
+    current_date = datetime.now()
+    competition_date = datetime.strptime(
+        foundCompetition['date'], '%Y-%m-%d %H:%M:%S')
+    if competition_date < current_date:
+        flash('This competition has already taken place')
+        abort(403)
+        return render_template('welcome.html', club=foundClub, competitions=competitions)
+    maxPlaces = min(int(
+        foundClub['points']), (12 - getClubNbReservations(foundClub, foundCompetition)))
     if foundClub and foundCompetition:
         return render_template('booking.html', club=foundClub, competition=foundCompetition, maxPlaces=maxPlaces)
     else:
@@ -85,17 +108,20 @@ def purchasePlaces():
 
     clubBookedPlaces = getClubNbReservations(club, competition)
 
-    #max 12 places
+    # max 12 places
     if clubBookedPlaces + placesRequired > 12:
         if clubBookedPlaces == 0:
             flash('You can only book a maximum of 12 places for a competition')
         else:
-            flash('You can only book a maximum of 12 places for a competition and you have already booked ' + str(clubBookedPlaces) + ' places')
+            flash('You can only book a maximum of 12 places for a competition and you have already booked ' +
+                  str(clubBookedPlaces) + ' places')
 
     # Check if the club has enough points
     elif int(club['points']) >= placesRequired:
-        competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
-        club['points'] = str(int(club['points']) - placesRequired)  # Deduct the points from the club's total
+        competition['numberOfPlaces'] = int(
+            competition['numberOfPlaces']) - placesRequired
+        # Deduct the points from the club's total
+        club['points'] = str(int(club['points']) - placesRequired)
         # Update the reservations
         addReservation(club, competition, placesRequired)
         # Save the updated data to the JSON file
@@ -114,9 +140,11 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+
 def addReservation(club, competition, places):
     # Créer une nouvelle réservation
-    new_reservation = {'club': club['name'], 'competition': competition['name'], 'places': places}
+    new_reservation = {
+        'club': club['name'], 'competition': competition['name'], 'places': places}
 
     # Vérifier si une réservation similaire existe déjà
     for reservation in reservations:
@@ -127,6 +155,7 @@ def addReservation(club, competition, places):
     else:
         # Si non, ajouter la nouvelle réservation à la liste
         reservations.append(new_reservation)
+
 
 def getClubNbReservations(club, competition):
     clubBookedPlaces = 0
