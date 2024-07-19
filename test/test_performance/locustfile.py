@@ -1,5 +1,6 @@
 from locust import HttpUser, task, between
 
+
 class ProjectPerfTest(HttpUser):
     # wait_time = between(1, 2)
     host = "http://localhost:5000"
