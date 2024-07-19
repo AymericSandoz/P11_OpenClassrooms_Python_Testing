@@ -85,7 +85,7 @@ def book(competition, club):
         abort(403)
         return render_template('welcome.html', club=foundClub, competitions=competitions)
     maxPlaces = min(int(
-        foundClub['points']), (12 - getClubNbReservations(foundClub, foundCompetition)))
+        foundClub['points']), (12 - getClubNbReservations(foundClub, foundCompetition)), int(foundCompetition['numberOfPlaces']))
     if foundClub and foundCompetition:
         return render_template('booking.html', club=foundClub, competition=foundCompetition, maxPlaces=maxPlaces)
     else:
@@ -111,6 +111,10 @@ def purchasePlaces():
         else:
             flash('You can only book a maximum of 12 places for a competition and you have already booked ' +
                   str(clubBookedPlaces) + ' places')
+
+    # check how many places are left
+    elif int(competition['numberOfPlaces']) < placesRequired:
+        flash('Not enough places left to complete this booking.')
 
     # Check if the club has enough points
     elif int(club['points']) >= placesRequired:
