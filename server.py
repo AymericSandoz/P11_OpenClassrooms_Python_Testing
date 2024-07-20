@@ -46,6 +46,16 @@ def index(error=None):
     return render_template('index.html', error=error, clubs=clubs)
 
 
+@app.route('/welcome')
+def welcome():
+    if session.get('email') is not None:
+        # get club thanks to email
+        club = [club for club in clubs if club['email'] == session['email']]
+        if club:
+            return render_template('welcome.html', club=club[0], competitions=competitions)
+    return redirect(url_for('index'))
+
+
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
     current_date = datetime.now()
